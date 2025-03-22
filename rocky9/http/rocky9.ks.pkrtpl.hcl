@@ -111,3 +111,28 @@ iscsi-initiator-utils
 # Remove Intel wireless firmware
 -i*-firmware
 %end
+
+%post
+# Move to a writeable directory in the new system
+cd /root
+# Download the RPM
+wget https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
+# Create a file with the expected checksum
+cat <<EOF > /root/doca_checksum.txt
+3c5155b42edee8fc97d27432a775d98d5ebcc1fb9c4c8c68f8bfb75d4b08f1bb  doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
+EOF
+# Verify the downloaded file against the expected checksum
+sha256sum -c /root/doca_checksum.txt
+if [ $? -ne 0 ]; then
+    echo "ERROR: The downloaded file's checksum does not match!"
+    exit 1
+fi
+# Install the RPM
+rpm -i doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
+# Clean DNF cache
+dnf clean all
+# Install doca-ofed
+dnf -y install doca-ofed
+rm doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
+%end
+

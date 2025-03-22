@@ -129,7 +129,7 @@ build {
       "OUTPUT=${var.filename}",
       "source ../scripts/fuse-nbd",
       "source ../scripts/fuse-tar-root",
-      "rm -rf output-${source.name}",
+      "# rm -rf output-${source.name}",
     ]
     inline_shebang = "/bin/bash -e"
   }
