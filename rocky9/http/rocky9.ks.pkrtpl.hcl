@@ -1,11 +1,11 @@
-url ${KS_OS_REPOS} ${KS_PROXY}
-repo --name="AppStream" ${KS_APPSTREAM_REPOS} ${KS_PROXY}
-repo --name="Extras" ${KS_EXTRAS_REPOS} ${KS_PROXY}
+url --url=https://dl.rockylinux.org/vault/rocky/9.4/BaseOS/x86_64/os/
+repo --name="AppStream" --baseurl=https://dl.rockylinux.org/vault/rocky/9.4/AppStream/x86_64/os/
+repo --name="Extras"    --baseurl=https://dl.rockylinux.org/vault/rocky/9.4/extras/x86_64/os/
 
 eula --agreed
 
-# Turn off after installation
-poweroff
+# Reboot after installation
+reboot
 
 # Do not start the Inital Setup app
 firstboot --disable
@@ -17,10 +17,12 @@ timezone UTC --utc
 
 # Set the first NIC to acquire IPv4 address via DHCP
 network --device eth0 --bootproto=dhcp
-# Enable firewal, let SSH through
-firewall --enabled --service=ssh
-# Enable SELinux with default enforcing policy
-selinux --enforcing
+
+# Disable the firewall completely
+firewall --disabled
+
+# Permissive SELinux
+selinux --permissive
 
 # Do not set up XX Window System
 skipx
@@ -28,13 +30,15 @@ skipx
 # Initial disk setup
 # Use the first paravirtualized disk
 ignoredisk --only-use=vda
-# No need for bootloader
-bootloader --disabled
+# Bootloader
+bootloader --location=mbr --boot-drive=vda
 # Wipe invalid partition tables
 zerombr
 # Erase all partitions and assign default labels
 clearpart --all --initlabel
 # Initialize the primary root partition with ext4 filesystem
+part /boot/efi --fstype=efi --size=512 --ondisk=vda
+part /boot --fstype=ext4 --size=1024 --ondisk=vda
 part / --size=1 --grow --asprimary --fstype=ext4
 
 # Set root password
@@ -44,20 +48,9 @@ rootpw --plaintext password
 user --groups=wheel --name=rocky --password=rocky --plaintext --gecos="rocky"
 
 %post --erroronfail
-# workaround anaconda requirements and clear root password
-passwd -d root
-passwd -l root
-
-# Clean up install config not applicable to deployed environments.
-for f in resolv.conf fstab; do
-    rm -f /etc/$f
-    touch /etc/$f
-    chown root:root /etc/$f
-    chmod 644 /etc/$f
-done
 
 rm -f /etc/sysconfig/network-scripts/ifcfg-[^lo]*
-
+dnf -y install dkms
 # Kickstart copies install boot options. Serial is turned on for logging with
 # Packer which disables console output. Disable it so console output is shown
 # during deployments
@@ -84,11 +77,16 @@ chmod 440 /etc/sudoers.d/rocky
 #
 #### fix up selinux context
 # restorecon -R /home/rocky/.ssh/
+#
+# Move to a writeable directory in the new system
 
+sed -i 's/^#*PermitRootLogin .*/PermitRootLogin yes/' /etc/ssh/sshd_config
+eject /dev/cdrom || true
 %end
 
 %packages
 @Core
+epel-release
 bash-completion
 cloud-init
 cloud-utils-growpart
@@ -105,34 +103,21 @@ lvm2
 mdadm
 device-mapper-multipath
 iscsi-initiator-utils
+openssh-server
+curl
+wget
+selinux-policy
+selinux-policy-targeted
+policycoreutils
+kernel-headers
+kernel-devel
+kernel-devel-matched
+kernel-modules
+kernel-modules-core
+kernel-modules-extra
 -plymouth
 # Remove ALSA firmware
 -a*-firmware
 # Remove Intel wireless firmware
 -i*-firmware
 %end
-
-%post
-# Move to a writeable directory in the new system
-cd /root
-# Download the RPM
-wget https://www.mellanox.com/downloads/DOCA/DOCA_v2.10.0/host/doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
-# Create a file with the expected checksum
-cat <<EOF > /root/doca_checksum.txt
-3c5155b42edee8fc97d27432a775d98d5ebcc1fb9c4c8c68f8bfb75d4b08f1bb  doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
-EOF
-# Verify the downloaded file against the expected checksum
-sha256sum -c /root/doca_checksum.txt
-if [ $? -ne 0 ]; then
-    echo "ERROR: The downloaded file's checksum does not match!"
-    exit 1
-fi
-# Install the RPM
-rpm -i doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
-# Clean DNF cache
-dnf clean all
-# Install doca-ofed
-dnf -y install doca-ofed
-rm doca-host-2.10.0-093000_25.01_rhel95.x86_64.rpm
-%end
-
