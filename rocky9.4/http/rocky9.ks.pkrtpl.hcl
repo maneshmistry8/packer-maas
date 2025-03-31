@@ -31,7 +31,7 @@ skipx
 # Use the first paravirtualized disk
 ignoredisk --only-use=vda
 # Bootloader
-bootloader --location=mbr --driveorder=vda
+bootloader --location=mbr --boot-drive=vda
 # Wipe invalid partition tables
 zerombr
 # Erase all partitions and assign default labels
