@@ -31,11 +31,7 @@ skipx
 # Use the first paravirtualized disk
 ignoredisk --only-use=vda
 # Bootloader
-<<<<<<<< HEAD:rocky9.4/http/rocky9.ks.pkrtpl.hcl
 bootloader --location=mbr --boot-drive=vda
-========
-bootloader --location=mbr --driveorder=vda
->>>>>>>> main:rocky9.5/http/rocky9.ks.pkrtpl.hcl
 # Wipe invalid partition tables
 zerombr
 # Erase all partitions and assign default labels
