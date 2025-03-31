@@ -31,7 +31,11 @@ skipx
 # Use the first paravirtualized disk
 ignoredisk --only-use=vda
 # Bootloader
+<<<<<<<< HEAD:rocky9.4/http/rocky9.ks.pkrtpl.hcl
 bootloader --location=mbr --boot-drive=vda
+========
+bootloader --location=mbr --driveorder=vda
+>>>>>>>> main:rocky9.5/http/rocky9.ks.pkrtpl.hcl
 # Wipe invalid partition tables
 zerombr
 # Erase all partitions and assign default labels
@@ -54,10 +58,10 @@ dnf -y install dkms
 # Kickstart copies install boot options. Serial is turned on for logging with
 # Packer which disables console output. Disable it so console output is shown
 # during deployments
-sed -i 's/^GRUB_TERMINAL=.*/GRUB_TERMINAL_OUTPUT="console"/g' /etc/default/grub
-sed -i '/GRUB_SERIAL_COMMAND="serial"/d' /etc/default/grub
-sed -ri 's/(GRUB_CMDLINE_LINUX=".*)\s+console=ttyS0(.*")/\1\2/' /etc/default/grub
-sed -i 's/GRUB_ENABLE_BLSCFG=.*/GRUB_ENABLE_BLSCFG=false/g' /etc/default/grub
+#sed -i 's/^GRUB_TERMINAL=.*/GRUB_TERMINAL_OUTPUT="console"/g' /etc/default/grub
+#sed -i '/GRUB_SERIAL_COMMAND="serial"/d' /etc/default/grub
+#sed -ri 's/(GRUB_CMDLINE_LINUX=".*)\s+console=ttyS0(.*")/\1\2/' /etc/default/grub
+#sed -i 's/GRUB_ENABLE_BLSCFG=.*/GRUB_ENABLE_BLSCFG=false/g' /etc/default/grub
 
 yum clean all
 
