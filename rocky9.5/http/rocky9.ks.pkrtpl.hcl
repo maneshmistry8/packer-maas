@@ -1,6 +1,6 @@
-url --url=https://dl.rockylinux.org/vault/rocky/9.4/BaseOS/x86_64/os/
-repo --name="AppStream" --baseurl=https://dl.rockylinux.org/vault/rocky/9.4/AppStream/x86_64/os/
-repo --name="Extras"    --baseurl=https://dl.rockylinux.org/vault/rocky/9.4/extras/x86_64/os/
+url --url=https://mirror.ams.macarne.com/rocky/9.5/BaseOS/x86_64/os/
+repo --name="AppStream" --baseurl=https://mirror.ams.macarne.com/rocky/9.5/AppStream/x86_64/os/
+repo --name="Extras"    --baseurl=https://mirror.ams.macarne.com/rocky/9.5/extras/x86_64/os/
 
 eula --agreed
 
